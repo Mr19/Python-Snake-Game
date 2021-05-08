@@ -54,6 +54,13 @@ class Snake:
         if self.head.heading() != LEFT:
             self.head.setheading(RIGHT)
 
+    def reset(self):
+        for snake in self.snake:
+            snake.goto(1000, 1000)
+        self.snake.clear()
+        self.create_snake()
+        self.head = self.snake[0]
+
 
 class Food(Turtle):
 
@@ -77,6 +84,8 @@ class ScoreBoard(Turtle):
     def __init__(self):
         super().__init__()
         self.score = 0
+        with open("high_score.txt") as high_score_value:
+            self.high_score = int(high_score_value.read())
         self.color("white")
         self.penup()
         self.goto(0, 270)
@@ -84,15 +93,19 @@ class ScoreBoard(Turtle):
         self.update_scoreboard()
 
     def update_scoreboard(self):
-        self.write(f"Score: {self.score}", align="center", font=("Arial", 24, "normal"))
+        self.clear()
+        self.write(f"Score: {self.score} High Score: {self.high_score}", align="center", font=("Arial", 24, "normal"))
 
-    def game_over(self):
-        self.goto(0, 0)
-        self.write("GAME OVER", align="center", font=("Arial", 24, "normal"))
+    def reset(self):
+        if self.score > self.high_score:
+            self.high_score = self.score
+            with open("high_score.txt", "w") as high_score_value:
+                high_score_value.write(str(self.high_score))
+        self.score = 0
+        self.update_scoreboard()
 
     def increase_score(self):
         self.score += 1
-        self.clear()
         self.update_scoreboard()
 
 
@@ -127,14 +140,14 @@ def main():
 
         # Collision with the wall
         if snake.head.xcor() < -280 or snake.head.xcor() > 280 or snake.head.ycor() < -280 or snake.head.ycor() > 280:
-            score.game_over()
-            snake_game_active = False
+            score.reset()
+            snake.reset()
 
         # Detection collection with tail
         for snake_part in snake.snake[1:]:
             if snake.head.distance(snake_part) < 10:
-                snake_game_active = False
-                score.game_over()
+                score.reset()
+                snake.reset()
 
     screen.exitonclick()
 
